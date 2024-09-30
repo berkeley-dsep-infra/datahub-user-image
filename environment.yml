@@ -119,7 +119,6 @@ dependencies:
 - openpyxl==3.1.5
 
 - pip:
-  # - -r /tmp/infra-requirements.txt
   # Econ 148, Spring 2023 https://github.com/berkeley-dsep-infra/datahub/issues/4093
   - pycountry-convert==0.7.2
   # Options to convert notebooks to pdf; error converting to PDF https://github.com/berkeley-dsep-infra/datahub/issues/5062
