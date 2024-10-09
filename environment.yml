@@ -10,7 +10,7 @@ dependencies:
 - nbclassic==1.0.0
 
 # gh-scoped-creds needs a newer version of git than what jammy provides
-- git==2.45.1
+- git==2.47.0
 
 # pymc3 needs this
 - mkl-service=2.4.*
@@ -117,6 +117,9 @@ dependencies:
 
 # [DH-364] https://github.com/berkeley-dsep-infra/datahub/issues/6155
 - openpyxl==3.1.5
+
+# [DH-393] https://github.com/berkeley-dsep-infra/datahub/issues/6346
+- pyogrio==0.10.0
 
 - pip:
   # Econ 148, Spring 2023 https://github.com/berkeley-dsep-infra/datahub/issues/4093
