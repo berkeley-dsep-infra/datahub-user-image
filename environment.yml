@@ -31,7 +31,7 @@ dependencies:
 - spacy==3.4.4
 - nltk=3.6.*
 
-# [DH-383], L&S 22, Fall 2024ocker 
+# [DH-384], L&S 22, Fall 2024
 # Packages listed below will be used during SP 25
 - spacy-model-en_core_web_sm=3.4.0
 - spacy-model-en_core_web_md=3.4.0
