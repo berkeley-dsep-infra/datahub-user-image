@@ -28,14 +28,14 @@ dependencies:
 # - bokeh=2.3.*
 - decorator=5.0.*
 - networkx=2.6.*
-- spacy=3.7.3
+- spacy==3.4.4
 - nltk=3.6.*
 
-# 3577, L&S 22, Spring 2023
+# [DH-384], L&S 22, Fall 2024
 # Packages listed below will be used during SP 25
-# - spacy-model-en_core_web_sm=3.4.0
-# - spacy-model-en_core_web_md=3.4.0
-# - lemminflect=0.2.2
+- spacy-model-en_core_web_sm=3.4.0
+- spacy-model-en_core_web_md=3.4.0
+- lemminflect=0.2.2
 
 # EPS88, data100
 # https://github.com/berkeley-dsep-infra/datahub/issues/1796
