@@ -33,8 +33,7 @@ dependencies:
 
 # [DH-384], L&S 22, Fall 2024
 # Packages listed below will be used during SP 25
-- pydantic==1.10.8
-- typing_extensions==4.6.0
+- typing_extensions==4.7.0
 - spacy-model-en_core_web_sm=3.4.0
 - spacy-model-en_core_web_md=3.4.0
 - lemminflect=0.2.2
@@ -224,6 +223,7 @@ dependencies:
 
   # Engineering 7 https://github.com/berkeley-dsep-infra/datahub/issues/5337
   - otter-grader==4.4.1
+  - pydantic==1.10.8
   # pulled in by ottr, if not pinned to 1.16.2, 1.16.3 causes DH-323
   - jupytext==1.16.2
 
