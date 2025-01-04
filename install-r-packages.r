@@ -175,12 +175,6 @@ packages = list(
 
 install_packages_with_versions(packages)
 
-# Install Bioc packages
-BiocManager::repositories()
-
-packages = c(
-  "rhdf5" = "2.51.1",
-  "Rhdf5lib" = "1.29.0"
-)
-
-install_packages_with_versions(packages)
+# Posit Package Manager currently has no binary BioConductor packages.
+BiocManager::install("rhdf5")
+BiocManager::install("Rhdf5lib")
