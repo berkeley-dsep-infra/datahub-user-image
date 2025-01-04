@@ -132,9 +132,8 @@ ENV PATH ${CONDA_DIR}/bin:$PATH
 
 COPY environment.yml /tmp/environment.yml
 
-#RUN echo "/srv/conda/bin/mamba env update -p ${CONDA_DIR} -f /tmp/environment.yml" | /usr/bin/time -f "User\t%U\nSys\t%S\nReal\t%E\nCPU\t%P" /usr/bin/bash
 RUN mamba env update -p ${CONDA_DIR} -f /tmp/environment.yml
-RUN echo "mamba clean -afy" | /usr/bin/time -f "User\t%U\nSys\t%S\nReal\t%E\nCPU\t%P" /usr/bin/bash
+RUN mamba clean -afy
 
 #ESPM, FA 24
 # https://github.com/berkeley-dsep-infra/datahub/issues/5827
@@ -142,6 +141,15 @@ ENV VSCODE_EXTENSIONS=${CONDA_DIR}/share/code-server/extensions
 USER root
 RUN mkdir -p ${VSCODE_EXTENSIONS} && \
     chown -R jovyan:jovyan ${VSCODE_EXTENSIONS}
+
+# install chromium browser for playwright
+# https://github.com/berkeley-dsep-infra/datahub/issues/5062
+# playwright is only availalbe in nbconvert[webpdf], via pip/pypi.
+# see also environment.yaml
+# DH-164
+ENV PLAYWRIGHT_BROWSERS_PATH ${CONDA_DIR}
+RUN playwright install chromium
+
 USER ${NB_USER}
 # Install Code Server Jupyter extension 
 RUN /srv/conda/bin/code-server --extensions-dir ${VSCODE_EXTENSIONS} --install-extension ms-toolsai.jupyter
@@ -155,26 +163,19 @@ RUN /usr/local/sbin/connector-text.bash
 # =============================================================================
 # This stage consumes base and import /srv/r and /srv/conda.
 FROM base as final
+
 COPY --from=srv-r /srv/r /srv/r
 COPY --from=srv-conda /srv/conda /srv/conda
 
+# Change ownership of top-level directories. Their contents are already
+# set to the right permissions.
+RUN chown ${NB_USER}:${NB_USER} /srv/r /srv/conda
+
+USER ${NB_USER}
+ENV PATH ${CONDA_DIR}/bin:${R_LIBS_USER}/bin:$PATH:/usr/lib/rstudio-server/bin
+
 # Install IR kernelspec. Requires python and R.
-ENV PATH ${CONDA_DIR}/bin:${PATH}:${R_LIBS_USER}/bin
-RUN ls /srv/r
 RUN R -e "IRkernel::installspec(user = FALSE, prefix='${CONDA_DIR}')"
-
-# install chromium browser for playwright
-# https://github.com/berkeley-dsep-infra/datahub/issues/5062
-# playwright is only availalbe in nbconvert[webpdf], via pip/pypi.
-# see also environment.yaml
-# DH-164
-ENV PLAYWRIGHT_BROWSERS_PATH ${CONDA_DIR}
-RUN playwright install chromium
-
-#COPY connectors/2021-fall-phys-188-288.bash /usr/local/sbin/
-#RUN /usr/local/sbin/2021-fall-phys-188-288.bash
-
-ENV PATH ${CONDA_DIR}/bin:$PATH:/usr/lib/rstudio-server/bin
 
 # clear out /tmp
 USER root
