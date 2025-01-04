@@ -1,4 +1,4 @@
-FROM buildpack-deps:jammy-scm
+FROM buildpack-deps:jammy-scm as base
 
 # Set up common env variables
 ENV TZ=America/Los_Angeles
@@ -11,6 +11,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV NB_USER jovyan
 ENV NB_UID 1000
 
+# These are used by the python, R, and final stages
 ENV CONDA_DIR /srv/conda
 ENV R_LIBS_USER /srv/r
 
@@ -46,30 +47,34 @@ RUN if  [ "$(dpkg-divert --truename /usr/bin/man)" = "/usr/bin/man.REAL" ]; then
 
 RUN mandb -c
 
-# Create user owned R libs dir
-# This lets users temporarily install packages
-RUN install -d -o ${NB_USER} -g ${NB_USER} ${R_LIBS_USER}
-
 # Install R.
-# These packages must be installed into the base stage since they are in system
-# paths rather than /srv.
-# Pre-built R packages from rspm are built against system libs in jammy.
-#ENV R_VERSION=4.3.2-1.2204.0
-#ENV LITTLER_VERSION=0.3.18-2.2204.0
-ENV R_VERSION=4.4.1-1.2204.0
-ENV LITTLER_VERSION=0.3.19-1.2204.0
+
+# These apt packages must be installed into the base stage since they are in
+# system paths rather than /srv.
+#
+# Pre-built R packages from Posit Package Manager are built against system libs
+# in jammy.
+#
+# After updating R_VERSION and rstudio-server, update Rprofile.site too.
+ENV R_VERSION=4.4.2-1.2204.0
+ENV LITTLER_VERSION=0.3.20-2.2204.0
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
 RUN echo "deb https://cloud.r-project.org/bin/linux/ubuntu jammy-cran40/" > /etc/apt/sources.list.d/cran.list
 RUN curl --silent --location --fail https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc > /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
 RUN apt-get update --yes > /dev/null && \
     apt-get install --yes -qq r-base-core=${R_VERSION} r-base-dev=${R_VERSION} littler=${LITTLER_VERSION} > /dev/null
 
-ENV RSTUDIO_URL=https://download2.rstudio.org/server/jammy/amd64/rstudio-server-2024.04.2-764-amd64.deb
+# RStudio Server and Quarto
+ENV RSTUDIO_URL=https://download2.rstudio.org/server/jammy/amd64/rstudio-server-2024.12.0-467-amd64.deb
 RUN curl --silent --location --fail ${RSTUDIO_URL} > /tmp/rstudio.deb && \
     apt install --no-install-recommends --yes /tmp/rstudio.deb && \
     rm /tmp/rstudio.deb
 
-ENV SHINY_SERVER_URL https://download3.rstudio.org/ubuntu-18.04/x86_64/shiny-server-1.5.20.1002-amd64.deb
+# For command-line access to quarto, which is installed by rstudio.
+RUN ln -s /usr/lib/rstudio-server/bin/quarto/bin/quarto /usr/local/bin/quarto
+
+# Shiny Server
+ENV SHINY_SERVER_URL https://download3.rstudio.org/ubuntu-18.04/x86_64/shiny-server-1.5.22.1017-amd64.deb
 RUN curl --silent --location --fail ${SHINY_SERVER_URL} > /tmp/shiny-server.deb && \
     apt install --no-install-recommends --yes /tmp/shiny-server.deb && \
     rm /tmp/shiny-server.deb
@@ -93,105 +98,43 @@ RUN sed -i -e '/^R_LIBS_USER=/s/^/#/' /etc/R/Renviron && \
     echo "R_LIBS_USER=${R_LIBS_USER}" >> /etc/R/Renviron && \
     echo "TZ=${TZ}" >> /etc/R/Renviron
 
-# For command-line access to quarto, which is installed by rstudio.
-RUN ln -s /usr/lib/rstudio-server/bin/quarto/bin/quarto /usr/local/bin/quarto
+# =============================================================================
+# This stage exists to build /srv/r.
+FROM base as srv-r
+
+# Create user owned R libs dir
+# This lets users temporarily install packages
+RUN install -d -o ${NB_USER} -g ${NB_USER} ${R_LIBS_USER}
 
 # Install R libraries as our user
 USER ${NB_USER}
 
-COPY class-libs.R /tmp/class-libs.R
-RUN mkdir -p /tmp/r-packages
+# Install R packages
+COPY install-r-packages.r /tmp/
+RUN /usr/bin/Rscript /tmp/install-r-packages.r
 
-# Install all our base R packages
-COPY install.R  /tmp/install.R
-RUN echo "/tmp/install.R" | /usr/bin/time -f "User\t%U\nSys\t%S\nReal\t%E\nCPU\t%P" /usr/bin/bash
-RUN rm -rf /tmp/downloaded_packages
+# =============================================================================
+# This stage exists to build /srv/conda.
+FROM base as srv-conda
 
-# DLAB CTAWG, Fall '20 - Summer '21
-# https://github.com/berkeley-dsep-infra/datahub/issues/1942
-COPY r-packages/dlab-ctawg.r /tmp/r-packages/
-RUN echo "/usr/bin/r /tmp/r-packages/dlab-ctawg.r" | /usr/bin/time -f "User\t%U\nSys\t%S\nReal\t%E\nCPU\t%P" /usr/bin/bash
-RUN rm -rf /tmp/downloaded_packages
-
-# Econ 140, Fall '22 and into the future
-# https://github.com/berkeley-dsep-infra/datahub/issues/3757
-COPY r-packages/econ-140.r /tmp/r-packages
-RUN echo "/usr/bin/r /tmp/r-packages/econ-140.r" | /usr/bin/time -f "User\t%U\nSys\t%S\nReal\t%E\nCPU\t%P" /usr/bin/bash
-RUN rm -rf /tmp/downloaded_packages
-
-# EEP/IAS C119, Spring '23
-# https://github.com/berkeley-dsep-infra/datahub/issues/4203
-COPY r-packages/eep-1118.r /tmp/r-packages
-RUN echo "/usr/bin/r /tmp/r-packages/eep-1118.r" | /usr/bin/time -f "User\t%U\nSys\t%S\nReal\t%E\nCPU\t%P" /usr/bin/bash
-RUN rm -rf /tmp/downloaded_packages
-
-# Stat 135, Fall '23
-# https://github.com/berkeley-dsep-infra/datahub/issues/4907
-COPY r-packages/2023-fall-stat-135.r /tmp/r-packages
-RUN echo "/usr/bin/r /tmp/r-packages/2023-fall-stat-135.r" | /usr/bin/time -f "User\t%U\nSys\t%S\nReal\t%E\nCPU\t%P" /usr/bin/bash
-RUN rm -rf /tmp/downloaded_packages
-
-# MBA 247, Fall '23
-# issue TBD; discussed over email
-COPY r-packages/2023-fall-mba-247.r /tmp/r-packages/
-RUN echo "/usr/bin/r /tmp/r-packages/2023-fall-mba-247.r" | /usr/bin/time -f "User\t%U\nSys\t%S\nReal\t%E\nCPU\t%P" /usr/bin/bash
-RUN rm -rf /tmp/downloaded_packages
-
-# POL SCI 3, SP 24
-# https://github.com/berkeley-dsep-infra/datahub/issues/5496
-COPY r-packages/2024-sp-polsci-3.r /tmp/r-packages/
-RUN echo "/usr/bin/r /tmp/r-packages/2024-sp-polsci-3.r" | /usr/bin/time -f "User\t%U\nSys\t%S\nReal\t%E\nCPU\t%P" /usr/bin/bash
-RUN rm -rf /tmp/downloaded_packages
-
-ENV PATH ${CONDA_DIR}/bin:$PATH:/usr/lib/rstudio-server/bin
-
-# Set this to be on container storage, rather than under $HOME ENV IPYTHONDIR ${CONDA_DIR}/etc/ipython
-
-WORKDIR /home/${NB_USER}
-
-# Install mambaforge as root
 USER root
-COPY install-mambaforge.bash /tmp/install-mambaforge.bash
-RUN echo "/tmp/install-mambaforge.bash" | /usr/bin/time -f "User\t%U\nSys\t%S\nReal\t%E\nCPU\t%P" /usr/bin/bash
+RUN install -d -o ${NB_USER} -g ${NB_USER} ${CONDA_DIR}
 
 # Install conda environment as our user
 USER ${NB_USER}
 
-COPY infra-requirements.txt /tmp/infra-requirements.txt
+# Install miniforge as root
+COPY --chown=${NB_USER}:${NB_USER} install-miniforge.bash /tmp/install-miniforge.bash
+#RUN echo "/tmp/install-miniforge.bash" | /usr/bin/time -f "User\t%U\nSys\t%S\nReal\t%E\nCPU\t%P" /usr/bin/bash
+RUN /tmp/install-miniforge.bash
+
+ENV PATH ${CONDA_DIR}/bin:$PATH
+
 COPY environment.yml /tmp/environment.yml
 
-RUN echo "/srv/conda/bin/mamba env update -p ${CONDA_DIR} -f /tmp/environment.yml" | /usr/bin/time -f "User\t%U\nSys\t%S\nReal\t%E\nCPU\t%P" /usr/bin/bash
-RUN echo "/srv/conda/bin/mamba clean -afy" | /usr/bin/time -f "User\t%U\nSys\t%S\nReal\t%E\nCPU\t%P" /usr/bin/bash
-RUN echo "/srv/conda/bin/pip install --no-cache -r /tmp/infra-requirements.txt" | /usr/bin/time -f "User\t%U\nSys\t%S\nReal\t%E\nCPU\t%P" /usr/bin/bash
-
-# 2024-01-13 sknapp: incompatible due to notebook 7
-# RUN jupyter contrib nbextensions install --sys-prefix --symlink && \
-#     jupyter nbextensions_configurator enable --sys-prefix
-
-# Used by MCB32, but incompatible with ipywidgets 8.x
-# RUN jupyter nbextension enable --py --sys-prefix qgrid
-
-# install chromium browser for playwright
-# https://github.com/berkeley-dsep-infra/datahub/issues/5062
-# playwright is only availalbe in nbconvert[webpdf], via pip/pypi.
-# see also environment.yaml
-# DH-164
-ENV PLAYWRIGHT_BROWSERS_PATH ${CONDA_DIR}
-RUN playwright install chromium
-
-# Install IR kernelspec
-RUN echo "/usr/bin/r -e \"IRkernel::installspec(user = FALSE, prefix='${CONDA_DIR}')\"" | /usr/bin/time -f "User\t%U\nSys\t%S\nReal\t%E\nCPU\t%P" /usr/bin/bash
-
-# 2024-01-13 sknapp: incompatible due to notebook 7
-# COPY d8extension.bash /usr/local/sbin/d8extension.bash
-# RUN /usr/local/sbin/d8extension.bash
-
-ENV NLTK_DATA ${CONDA_DIR}/nltk_data
-COPY connectors/text.bash /usr/local/sbin/connector-text.bash
-RUN /usr/local/sbin/connector-text.bash
-
-#COPY connectors/2021-fall-phys-188-288.bash /usr/local/sbin/
-#RUN /usr/local/sbin/2021-fall-phys-188-288.bash
+#RUN echo "/srv/conda/bin/mamba env update -p ${CONDA_DIR} -f /tmp/environment.yml" | /usr/bin/time -f "User\t%U\nSys\t%S\nReal\t%E\nCPU\t%P" /usr/bin/bash
+RUN mamba env update -p ${CONDA_DIR} -f /tmp/environment.yml
+RUN echo "mamba clean -afy" | /usr/bin/time -f "User\t%U\nSys\t%S\nReal\t%E\nCPU\t%P" /usr/bin/bash
 
 #ESPM, FA 24
 # https://github.com/berkeley-dsep-infra/datahub/issues/5827
@@ -205,11 +148,40 @@ RUN /srv/conda/bin/code-server --extensions-dir ${VSCODE_EXTENSIONS} --install-e
 # Install Code Server Python extension
 RUN /srv/conda/bin/code-server --extensions-dir ${VSCODE_EXTENSIONS} --install-extension ms-python.python
 
+ENV NLTK_DATA ${CONDA_DIR}/nltk_data
+COPY connectors/text.bash /usr/local/sbin/connector-text.bash
+RUN /usr/local/sbin/connector-text.bash
+
+# =============================================================================
+# This stage consumes base and import /srv/r and /srv/conda.
+FROM base as final
+COPY --from=srv-r /srv/r /srv/r
+COPY --from=srv-conda /srv/conda /srv/conda
+
+# Install IR kernelspec. Requires python and R.
+ENV PATH ${CONDA_DIR}/bin:${PATH}:${R_LIBS_USER}/bin
+RUN ls /srv/r
+RUN R -e "IRkernel::installspec(user = FALSE, prefix='${CONDA_DIR}')"
+
+# install chromium browser for playwright
+# https://github.com/berkeley-dsep-infra/datahub/issues/5062
+# playwright is only availalbe in nbconvert[webpdf], via pip/pypi.
+# see also environment.yaml
+# DH-164
+ENV PLAYWRIGHT_BROWSERS_PATH ${CONDA_DIR}
+RUN playwright install chromium
+
+#COPY connectors/2021-fall-phys-188-288.bash /usr/local/sbin/
+#RUN /usr/local/sbin/2021-fall-phys-188-288.bash
+
+ENV PATH ${CONDA_DIR}/bin:$PATH:/usr/lib/rstudio-server/bin
+
 # clear out /tmp
 USER root
 RUN rm -rf /tmp/*
 
 USER ${NB_USER}
+WORKDIR /home/${NB_USER}
 
 EXPOSE 8888
 
