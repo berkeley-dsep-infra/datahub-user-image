@@ -156,7 +156,6 @@ packages = list(
   # publishing packages
   "blogdown" = "1.19",
   "rticles" = "0.27",
-  "rmdshower" = "2.1.1",
   "rJava" = "1.0-11",
   "xaringan" = "0.30",
   # /publishing packages
