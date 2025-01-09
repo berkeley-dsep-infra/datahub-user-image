@@ -54,6 +54,7 @@ packages = list(
   "geometry" = "0.5.0",
   "geosphere" = "1.5-20",
   "ggplot2" = "3.5.1",
+  "ggthemes" = "5.1.0", 
   "git2r" = "0.35.0",
   "globals" = "0.16.3",
   "gstat" = "2.1-2",
@@ -170,7 +171,23 @@ packages = list(
 
   # From https://github.com/berkeley-dsep-infra/datahub/issues/3757
   # econ 140, fall 2022 and into the future
-  "ipumsr" = "0.8.1"
+  "ipumsr" = "0.8.1",
+
+  # https://github.com/berkeley-dsep-infra/datahub/issues/6545
+  # ENVECON 118, Spring 2025
+  "foreign" = "0.8-87",
+  "ggthemes" = "5.1.0",
+  "gridExtra" = "2.3",
+  "lmtest" = "0.9-40",
+  "magrittr" = "2.0.3",
+  "margins" = "0.3.28",
+  "multcomp" = "1.4-26",
+  "openxlsx" = "4.2.7.1",
+  "quantmod" = "0.4.26",
+  "QuantPsyc" = "1.6",
+  "qwraps2" = "0.6.1",
+  "sandwich" = "3.1-1",
+  "stats" = "4.5.0"
 )
 
 install_packages_with_versions(packages)
