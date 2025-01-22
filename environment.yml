@@ -149,7 +149,7 @@ dependencies:
 
   # sknapp 2023-12-15:  we will eventually move prob140 back to datahub in FA24
   # https://jira-secure.berkeley.edu/browse/DH-203
-  - prob140==0.4.1.5
+  - prob140==0.4.1.6
 
   # https://github.com/berkeley-dsep-infra/datahub/issues/2950
   # Needed to work with a new enough version of httplib2
