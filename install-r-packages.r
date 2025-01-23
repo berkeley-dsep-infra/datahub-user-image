@@ -194,7 +194,7 @@ install_packages_with_versions(packages)
 
 # https://jira-secure.berkeley.edu/browse/DH-446
 # https://jira-secure.berkeley.edu/browse/DH-448
-install_version("wooldridge", version = "1.4-3", repos = "http://cran.us.r-project.org")
+remotes::install_version("wooldridge", "1.4-3")
 
 # Posit Package Manager currently has no binary BioConductor packages.
 BiocManager::install("rhdf5")
