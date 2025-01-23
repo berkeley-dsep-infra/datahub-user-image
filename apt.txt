@@ -85,3 +85,8 @@ libmysqlclient-dev
 # 2024-08 workshop
 # https://github.com/berkeley-dsep-infra/datahub/issues/5906
 man
+
+# R package magick
+# Unknown requirement. Perhaps remove this and the R magick package during a
+# maintenance period.
+libmagick++-dev
