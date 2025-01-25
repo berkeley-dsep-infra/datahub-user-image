@@ -1,7 +1,20 @@
-# editors, pagers, tools
+# general desired cli tools
+curl
+emacs
 less
-tar
+rsync
 vim
+wget
+screen
+man
+man-db
+manpages-posix
+manpages-dev
+manpages-posix-dev
+tar
+zip
+
+# other editors, pagers, tools
 micro
 tini
 locales
