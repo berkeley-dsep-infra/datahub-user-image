@@ -4,16 +4,22 @@ FROM buildpack-deps:jammy-scm as base
 ENV TZ=America/Los_Angeles
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-ENV LC_ALL en_US.UTF-8
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US.UTF-8
 ENV DEBIAN_FRONTEND=noninteractive
-ENV NB_USER jovyan
-ENV NB_UID 1000
+ENV NB_USER=jovyan
+ENV NB_UID=1000
 
 # These are used by the python, R, and final stages
-ENV CONDA_DIR /srv/conda
-ENV R_LIBS_USER /srv/r
+ENV CONDA_DIR=/srv/conda
+ENV R_LIBS_USER=/srv/r
+
+# capture default path so we can set the path succinctly later
+ENV DEFAULT_PATH=${PATH}
+
+# needed for webpdf notebook exports in the jovyan's environment
+ENV PLAYWRIGHT_BROWSERS_PATH=${CONDA_DIR}
 
 RUN apt-get -qq update --yes && \
     apt-get -qq install --yes locales && \
@@ -102,6 +108,7 @@ RUN sed -i -e '/^R_LIBS_USER=/s/^/#/' /etc/R/Renviron && \
 # This stage exists to build /srv/r.
 FROM base as srv-r
 
+USER root
 # Create user owned R libs dir
 # This lets users temporarily install packages
 RUN install -d -o ${NB_USER} -g ${NB_USER} ${R_LIBS_USER}
@@ -118,61 +125,58 @@ RUN /usr/bin/Rscript /tmp/install-r-packages.r
 FROM base as srv-conda
 
 USER root
+# Create user owned conda dir
+# This lets users temporarily install packages
 RUN install -d -o ${NB_USER} -g ${NB_USER} ${CONDA_DIR}
 
 # Install conda environment as our user
 USER ${NB_USER}
 
-# Install miniforge as root
+# Install conda 
 COPY --chown=${NB_USER}:${NB_USER} install-miniforge.bash /tmp/install-miniforge.bash
-#RUN echo "/tmp/install-miniforge.bash" | /usr/bin/time -f "User\t%U\nSys\t%S\nReal\t%E\nCPU\t%P" /usr/bin/bash
 RUN /tmp/install-miniforge.bash
 
-ENV PATH ${CONDA_DIR}/bin:$PATH
-
+# Install Conda packages
+ENV PATH=${CONDA_DIR}/bin:$PATH
 COPY environment.yml /tmp/environment.yml
-
-RUN mamba env update -p ${CONDA_DIR} -f /tmp/environment.yml
+RUN mamba env update -q -p ${CONDA_DIR} -f /tmp/environment.yml
 RUN mamba clean -afy
 
 #ESPM, FA 24
 # https://github.com/berkeley-dsep-infra/datahub/issues/5827
 ENV VSCODE_EXTENSIONS=${CONDA_DIR}/share/code-server/extensions
-USER root
-RUN mkdir -p ${VSCODE_EXTENSIONS} && \
-    chown -R jovyan:jovyan ${VSCODE_EXTENSIONS}
+RUN mkdir -p ${VSCODE_EXTENSIONS}
+
+# Install Code Server Jupyter extension
+RUN /srv/conda/bin/code-server --extensions-dir ${VSCODE_EXTENSIONS} --install-extension ms-toolsai.jupyter
+# Install Code Server Python extension
+RUN /srv/conda/bin/code-server --extensions-dir ${VSCODE_EXTENSIONS} --install-extension ms-python.python
+
+# TODO:  there's a good chance we may not need this, jon f 2025-01-24
+ENV NLTK_DATA=${CONDA_DIR}/nltk_data
+COPY connectors/text.bash /tmp/connector-text.bash
+RUN /tmp/connector-text.bash
 
 # install chromium browser for playwright
 # https://github.com/berkeley-dsep-infra/datahub/issues/5062
 # playwright is only availalbe in nbconvert[webpdf], via pip/pypi.
 # see also environment.yaml
 # DH-164
-ENV PLAYWRIGHT_BROWSERS_PATH ${CONDA_DIR}
 RUN playwright install chromium
 
-USER ${NB_USER}
-# Install Code Server Jupyter extension 
-RUN /srv/conda/bin/code-server --extensions-dir ${VSCODE_EXTENSIONS} --install-extension ms-toolsai.jupyter
-# Install Code Server Python extension
-RUN /srv/conda/bin/code-server --extensions-dir ${VSCODE_EXTENSIONS} --install-extension ms-python.python
-
-ENV NLTK_DATA ${CONDA_DIR}/nltk_data
-COPY connectors/text.bash /usr/local/sbin/connector-text.bash
-RUN /usr/local/sbin/connector-text.bash
-
+RUN mamba list
 # =============================================================================
 # This stage consumes base and import /srv/r and /srv/conda.
 FROM base as final
 
+USER root
 COPY --from=srv-r /srv/r /srv/r
 COPY --from=srv-conda /srv/conda /srv/conda
 
-# Change ownership of top-level directories. Their contents are already
-# set to the right permissions.
 RUN chown ${NB_USER}:${NB_USER} /srv/r /srv/conda
 
 USER ${NB_USER}
-ENV PATH ${CONDA_DIR}/bin:${R_LIBS_USER}/bin:$PATH:/usr/lib/rstudio-server/bin
+ENV PATH=${CONDA_DIR}/bin:${R_LIBS_USER}/bin:${DEFAULT_PATH}:/usr/lib/rstudio-server/bin
 
 # Install IR kernelspec. Requires python and R.
 RUN R -e "IRkernel::installspec(user = FALSE, prefix='${CONDA_DIR}')"
