@@ -128,6 +128,9 @@ dependencies:
 
   # Engineering 7 https://github.com/berkeley-dsep-infra/datahub/issues/5337
   - pydantic==2.10.5
+  
+  # Econ 148, https://github.com/berkeley-dsep-infra/datahub/issues/6791
+  - jupysql==0.10.17
 
   - pip:
     - git-credential-helpers==0.2
