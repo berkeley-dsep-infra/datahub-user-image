@@ -182,17 +182,20 @@ packages <- c(
   # https://github.com/andrewpbray/gradebook-app
   # For Spring '25 into the future
   "DT@0.33",
-  "Hmisc@5.2-2",
-  "purrr@1.0.4",
+  "Hmisc@5.2-1",
+  "purrr@1.0.2",
   "shinyFiles@0.9.3",
   "shinyTime@1.0.3",
-  "shinyWidgets@0.9.0",
+  "shinyWidgets@0.8.7",
   "shinydashboard@0.7.2"
   # /gradebook packages
 
 
   # When adding or removing packages, note that the last package in this list
   # should not have a trailing comma, but every other package should.
+
+  # When adding, try first installing the packages within a datahub session to
+  # verify that you have valid versions for the snapshotted package repository.
 
 )
 
