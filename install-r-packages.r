@@ -176,7 +176,23 @@ packages <- c(
   "stats@4.5.0",
 
   # DH-446, Econ 140, Spring 2025
-  "wooldridge@1.4-3"
+  "wooldridge@1.4-3",
+
+  # Used when developing the gradebook app
+  # https://github.com/andrewpbray/gradebook-app
+  # For Spring '25 into the future
+  "DT@0.33",
+  "Hmisc@5.2-2",
+  "purrr@1.0.4",
+  "shinyFiles@0.9.3",
+  "shinyTime@1.0.3",
+  "shinyWidgets@0.9.0",
+  "shinydashboard@0.7.2"
+  # /gradebook packages
+
+
+  # When adding or removing packages, note that the last package in this list
+  # should not have a trailing comma, but every other package should.
 
 )
 
