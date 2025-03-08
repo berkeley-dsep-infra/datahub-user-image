@@ -183,6 +183,7 @@ packages <- c(
   # For Spring '25 into the future
   "DT@0.33",
   "Hmisc@5.2-1",
+  "plotly@4.10.4",
   "purrr@1.0.2",
   "shinyFiles@0.9.3",
   "shinyTime@1.0.3",
