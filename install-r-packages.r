@@ -188,9 +188,11 @@ packages <- c(
   "shinyFiles@0.9.3",
   "shinyTime@1.0.3",
   "shinyWidgets@0.8.7",
-  "shinydashboard@0.7.2"
+  "shinydashboard@0.7.2",
   # /gradebook packages
 
+  # DH-484, PS 137, Spring 2025
+  "coefplot@1.2.8"
 
   # When adding or removing packages, note that the last package in this list
   # should not have a trailing comma, but every other package should.
