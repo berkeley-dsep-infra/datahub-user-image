@@ -68,7 +68,7 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD5
 RUN echo "deb https://cloud.r-project.org/bin/linux/ubuntu jammy-cran40/" > /etc/apt/sources.list.d/cran.list
 RUN curl --silent --location --fail https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc > /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
 RUN apt-get update --yes > /dev/null && \
-    apt-get install --yes -qq r-base-core=${R_VERSION} r-base-dev=${R_VERSION} littler=${LITTLER_VERSION} > /dev/null
+    apt-get install --yes -qq r-base-core=${R_VERSION} r-base-dev=${R_VERSION} littler=${LITTLER_VERSION} r-cran-littler=${LITTLER_VERSION} > /dev/null
 
 # RStudio Server and Quarto
 ENV RSTUDIO_URL=https://download2.rstudio.org/server/jammy/amd64/rstudio-server-2024.12.0-467-amd64.deb
@@ -172,8 +172,10 @@ FROM base as final
 USER root
 COPY --from=srv-r /srv/r /srv/r
 COPY --from=srv-conda /srv/conda /srv/conda
+ENV REPO_DIR=/srv/repo
+COPY --chown=${NB_USER}:${NB_USER} image-tests ${REPO_DIR}/image-tests
 
-RUN chown ${NB_USER}:${NB_USER} /srv/r /srv/conda
+RUN chown ${NB_USER}:${NB_USER} /srv/r /srv/conda 
 
 USER ${NB_USER}
 ENV PATH=${CONDA_DIR}/bin:${R_LIBS_USER}/bin:${DEFAULT_PATH}:/usr/lib/rstudio-server/bin
@@ -185,8 +187,10 @@ RUN R -e "IRkernel::installspec(user = FALSE, prefix='${CONDA_DIR}')"
 USER root
 RUN rm -rf /tmp/*
 
+
 USER ${NB_USER}
 WORKDIR /home/${NB_USER}
+
 
 EXPOSE 8888
 
