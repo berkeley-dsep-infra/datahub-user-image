@@ -172,9 +172,10 @@ FROM base as final
 USER root
 COPY --from=srv-r /srv/r /srv/r
 COPY --from=srv-conda /srv/conda /srv/conda
-COPY image-tests/ /srv/repo/image-tests/
+ENV REPO_DIR=/srv/repo
+COPY --chown=${NB_USER}:${NB_USER} image-tests ${REPO_DIR}/image-tests
 
-RUN chown ${NB_USER}:${NB_USER} /srv/r /srv/conda /srv/repo
+RUN chown ${NB_USER}:${NB_USER} /srv/r /srv/conda 
 
 USER ${NB_USER}
 ENV PATH=${CONDA_DIR}/bin:${R_LIBS_USER}/bin:${DEFAULT_PATH}:/usr/lib/rstudio-server/bin
@@ -188,7 +189,7 @@ RUN rm -rf /tmp/*
 
 
 USER ${NB_USER}
-WORKDIR /srv/repo
+WORKDIR /home/${NB_USER}
 
 
 EXPOSE 8888
