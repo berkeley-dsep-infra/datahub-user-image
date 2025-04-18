@@ -172,8 +172,9 @@ FROM base as final
 USER root
 COPY --from=srv-r /srv/r /srv/r
 COPY --from=srv-conda /srv/conda /srv/conda
+COPY image-tests/ /srv/repo/image-tests/
 
-RUN chown ${NB_USER}:${NB_USER} /srv/r /srv/conda
+RUN chown ${NB_USER}:${NB_USER} /srv/r /srv/conda /srv/repo
 
 USER ${NB_USER}
 ENV PATH=${CONDA_DIR}/bin:${R_LIBS_USER}/bin:${DEFAULT_PATH}:/usr/lib/rstudio-server/bin
@@ -185,12 +186,9 @@ RUN R -e "IRkernel::installspec(user = FALSE, prefix='${CONDA_DIR}')"
 USER root
 RUN rm -rf /tmp/*
 
-COPY image-tests /srv/repo
 
 USER ${NB_USER}
-ENV REPO_DIR=/srv/repo
-WORKDIR ${REPO_DIR}
-#WORKDIR /home/${NB_USER}
+WORKDIR /srv/repo
 
 
 EXPOSE 8888
