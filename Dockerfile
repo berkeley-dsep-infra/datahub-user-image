@@ -185,8 +185,11 @@ RUN R -e "IRkernel::installspec(user = FALSE, prefix='${CONDA_DIR}')"
 USER root
 RUN rm -rf /tmp/*
 
+COPY image-tests /home/${NB_USER)
+
 USER ${NB_USER}
 WORKDIR /home/${NB_USER}
+
 
 EXPOSE 8888
 
