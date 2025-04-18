@@ -188,7 +188,9 @@ RUN rm -rf /tmp/*
 COPY image-tests /srv/repo
 
 USER ${NB_USER}
-WORKDIR /home/${NB_USER}
+ENV REPO_DIR=/srv/repo
+WORKDIR ${REPO_DIR}
+#WORKDIR /home/${NB_USER}
 
 
 EXPOSE 8888
