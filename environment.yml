@@ -7,21 +7,21 @@ channels:
 dependencies:
   # Items required for basic level functionality
   - gh-scoped-creds==4.1
-  - git==2.47.1
+  - git==2.49.0
   - jupyter-archive==3.4.0
   - jupyter-offlinenotebook==0.3.1
-  - jupyter-resource-usage==1.1.0  
+  - jupyter-resource-usage==1.1.1  
   - jupyter-server-proxy==4.4.0
-  - jupyter_server==2.15.0 
-  - jupyterhub==5.2.1
-  - jupyterlab==4.3.4
-  - jupyterlab-git==0.50.2
+  - jupyter_server==2.16.0 
+  - jupyterhub==5.3.0
+  - jupyterlab==4.4.2
+  - jupyterlab-git==0.51.1
   - jupyterlab_rise==0.43.1
-  - jupytext==1.16.6
-  - nbgitpuller==1.2.1
-  - notebook==7.3.2
-  - otter-grader==6.1.0
-  - pip==24.3.1  
+  - jupytext==1.17.1
+  - nbgitpuller==1.2.2
+  - notebook==7.4.2
+  - otter-grader==6.1.3
+  - pip==25.1.1  
   - python==3.11.*
 
   # other packages
@@ -138,7 +138,7 @@ dependencies:
   - pip:
     - git-credential-helpers==0.2
     - jupyter-shiny-proxy==1.3.0
-    - nbconvert[webpdf]==7.16.5
+    - nbconvert[webpdf]==7.16.6
 
     # Measure popularity of different packages in our hubs
     # https://discourse.jupyter.org/t/request-for-implementation-instrument-libraries-actively-used-by-users-on-a-jupyterhub/7994?u=yuvipanda
