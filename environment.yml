@@ -154,6 +154,9 @@ dependencies:
     # https://github.com/berkeley-dsep-infra/datahub/issues/5497
     - ottr-force-save-labextension==0.1.1
 
+    # [DH-540], Physics 77/88, Fall 2025
+    - otter-grader-labextension==0.1.1
+
     # [DH-319] https://github.com/berkeley-dsep-infra/datahub/issues/5827, ESPM 157
     - ibis-framework[pandas,duckdb]==9.2.0
 
