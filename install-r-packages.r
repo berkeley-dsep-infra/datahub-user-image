@@ -192,13 +192,26 @@ packages <- c(
   # /gradebook packages
 
   # DH-484, PS 137, Spring 2025
-  "coefplot@1.2.8"
+  "coefplot@1.2.8",
 
   # When adding or removing packages, note that the last package in this list
   # should not have a trailing comma, but every other package should.
 
   # When adding, try first installing the packages within a datahub session to
   # verify that you have valid versions for the snapshotted package repository.
+
+  # DH-553 , MBA 247, Fall 2025
+  "arules@1.7-9",
+  "arulesViz@1.5-2",
+  "caret@7.0-1",
+  "imager@1.0.2",
+  "pROC@1.18.5",
+  "randomForest@4.7-1.2",
+  "rpart.plot@3.1.2",
+  "SnowballC@0.7.1",
+  "tm@0.7-15",
+  "wordcloud@2.6",
+  "xgboost@1.7.8.1"
 
 )
 
