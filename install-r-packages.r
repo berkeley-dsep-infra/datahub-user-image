@@ -204,6 +204,7 @@ packages <- c(
   "arules@1.7-9",
   "arulesViz@1.5-2",
   "caret@7.0-1",
+  "factoextra@1.0.7",
   "imager@1.0.2",
   "pROC@1.18.5",
   "randomForest@4.7-1.2",
