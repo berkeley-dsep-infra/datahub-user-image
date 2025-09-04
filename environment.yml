@@ -165,7 +165,7 @@ dependencies:
     # installed with newer numpy.
     - lemminflect==0.2.3
 
-    # DH - 557
+    # [DH-557], Data Courses, Fall 2025
     - datascience==0.18.0
 
     # ATTEMPT TO PUT NEW PACKAGES IN THE CONDA LIST ABOVE FIRST, RATHER THAN PIP
