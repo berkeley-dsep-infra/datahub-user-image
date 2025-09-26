@@ -212,8 +212,8 @@ packages <- c(
   "SnowballC@0.7.1",
   "tm@0.7-15",
   "wordcloud@2.6",
-  "xgboost@1.7.8.1"
-
+  "xgboost@1.7.8.1",
+  "SentimentAnalysis@1.3-5"
 )
 
 renv::install(packages)
