@@ -142,7 +142,7 @@ dependencies:
   - pyproj==3.7.2
 
   # DH-654, Make git-credentials-helper work for ds4bio course
-  - pyjwt==2.11.0
+  - pyjwt==2.10.1
 
   - pip:
     - git-credential-helpers==0.2
