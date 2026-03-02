@@ -141,7 +141,7 @@ dependencies:
   - geojson==3.2.0
   - pyproj==3.7.2
 
-  # DH-654, Make git-credentials-helper work for ds4bio course
+  # DH-654, Make git-credentials-helper work
   - pyjwt<2.11.0
 
   - pip:
